@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
 
 struct vector_t
 {
@@ -31,33 +33,34 @@ vec_len(
 
 // check if vector is empty.
 bool
-vec_empty(
+vec_is_empty(
     const struct vector_t* vec);
 
-// push item to end of vector
+// push contents of [item] to end of vector
 void
 vec_push_back(
     struct vector_t* vec,
-    void* item);
+    const void* item);
 
 // remove item from end of vector
 void
 vec_pop_back(
     struct vector_t* vec);
 
-// apply function to each element of vector.
-// first arg of apply() is the pointer to the current item in the array.
-// second arg of apply() is any additional data passed to the apply function (possibly NULL.)
+// iterate each each element of vector and call a callback function.
+// first arg of [callback] is the pointer to the current item in the array.
+// second arg of [callback] is any additional data passed to the apply function (possibly NULL.)
 void
-vec_apply(
+vec_foreach(
     struct vector_t* vec,
-    void (*apply)(void*, void*));
+	void* callback_data,
+    void (*callback)(void*, void*));
 
 // get pointer to item in vector.
 // returns NULL if idx is out of bounds.
 void*
 vec_get(
-    struct vector_t* vec,
+    const struct vector_t* vec,
     size_t idx);
 
 // overwrite contents at [idx] of the vector with [item]
@@ -89,25 +92,31 @@ vec_clear(
     struct vector_t* vec);
 
 // sets a new size and CLEARS the vector contents.
-// if you 
 void
 vec_resize(
     struct vector_t* vec,
-    size_t size);
+    size_t n_items);
+
+// fill contents of vector up to its length with [item].
+// typically used with vec_resize().
+void
+vec_fill(
+	struct vector_t* vec,
+	const void* item);
 
 // append contents of [src] vector into [dest] vector.
 // if element_size does not match between vectors, does nothing.
 void
 vec_append(
-    const struct vector_t* src,
-    struct vector_t* dest);
+    struct vector_t* dest,
+    const struct vector_t* src);
 
-// copy [src] vector into [dest] vector.
-// sets the same length, capacity, element_size and comparison function.
+// copy contents of [src] into [dest] resizing capacity if needed.
+// sets the same length, element_size and comparison function.
 void
 vec_copy(
-    struct vector_t* src,
-    struct vector_t* dest);
+	struct vector_t* dest,
+	const struct vector_t* src);
 
 // find an [item] inside the vector and returns a pointer to it.
 // if item is NOT found, returns NULL.
@@ -117,11 +126,17 @@ vec_find(
     struct vector_t* vec,
     const void* item, size_t* idx);
 
+// set the comparison function used in the vector.
+// can be useful to switch between ascending/descending orders in sorting.
+void
+vec_set_comparison(
+	struct vector_t* vec,
+	int (*cmp)(const void*, const void*));
+
 // sort vector ascending/descending.
 void
 vec_sort(
-    struct vector_t* vec,
-    bool ascending);
+    struct vector_t* vec);
 
 // check if contents of v1 == v2 element wise.
 bool
@@ -129,53 +144,24 @@ vec_eq(
     const struct vector_t* v1,
     const struct vector_t* v2);
 
-// check if contents of v1 < v2 element wise.
-bool
-vec_lt(
-    const struct vector_t* v1,
-    const struct vector_t* v2);
-
-// check if contents olf v1 <= v2 element wise.
-bool
-vec_lte(
-    const struct vector_t* v1,
-    const struct vector_t* v2);
-
-// check if contents of v1 > v2 element wise.
-bool
-vec_gt(
-    const struct vector_t* v1,
-    const struct vector_t* v2);
-
-// check if contents of v1 >= v2 element wise.
-bool
-vec_gte(
-    const struct vector_t* v1,
-    const struct vector_t* v2);
-
-// check if contents of v1 != v2 element wise.
-bool
-vec_ne(
-    const struct vector_t* v1,
-    const struct vector_t* v2);
-
-// subset a vector by specifying indices to grab.
+// subset a vector by specifying indices to grab and stores results in [dest].
 // allocates new (possibly empty) vector to return which must be free'd by the user.
-struct vector_t*
+void
 vec_subset(
     const struct vector_t* vec,
-    const size_t* indices);
+    const size_t* indices,
+	size_t n_indices,
+	struct vector_t* dest);
 
-// filter a vector by passing a [filter] function which returns true if item matches criteria.
+// filter a vector by passing a [filter] function which returns true if item matches criteria and stores results in [dest].
 // first arg in [filter] is the current item in vector
-// second arg in [filter] is any additional data passed to the filter (possibly NULL)
-//
-// returns a new (possibly empty) vector containing the items that matched the filter predicate
-// that must be free'd by the user.
-struct vector_t*
+// second arg in [filter] is any additional [filter_data] passed to the filter (possibly NULL)
+void
 vec_filter(
     const struct vector_t* vec,
-    bool (*filter)(const void*, const void*));
+	const void* filter_data,
+    bool (*filter)(const void*, const void*),
+	struct vector_t* dest);
 
 // free memory from vector
 void
