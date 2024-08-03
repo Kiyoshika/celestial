@@ -1,5 +1,7 @@
-# liblite
+# celestial
 A lightweight library for C containing common data structures such as vectors, strings and maps.
+
+The name is derived from `CSTL` (C STandard Library)
 
 # Building
 From the root directory:
